@@ -1,0 +1,123 @@
+name: Release
+
+# Build multi-OS + publicación en GitHub Releases.
+# Trigger: push de un tag v* (ej. git tag v0.2.0 && git push origin v0.2.0).
+# El job test debe pasar antes de construir; si falla, no se publica nada.
+# gh CLI ya viene preinstalado en los runners: no dependemos de actions de
+# terceros. Los jobs de build suben artefactos; el job final los junta y crea
+# la Release una sola vez (sin carrera entre la matriz).
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install ".[dev]"
+      - run: ruff check src tests
+
+  test:
+    needs: lint
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      # PySide6 en Linux necesita libs gráficas del sistema (EGL/GL/XKB/DBus)
+      # que el runner headless no trae instaladas por defecto.
+      - name: Instalar deps de Qt (solo Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libegl1 libgl1 libxkbcommon-x11-0 libdbus-1-3 libfontconfig1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      # En Windows el platform offscreen de Qt no ve las fuentes del
+      # sistema (no hay fontconfig), así que el texto sale con una fuente
+      # de relleno y los tests de maquetación fallan por eso. Con el
+      # platform nativo se usan las fuentes de Windows (Courier New,
+      # Consolas...), igual que en una máquina real.
+      - name: Platform de Qt para los tests
+        shell: bash
+        run: |
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            echo "QT_QPA_PLATFORM=windows" >> $GITHUB_ENV
+          fi
+      - run: pip install ".[dev]"
+      - run: python -m pytest -q
+
+  build:
+    needs: test
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact: aleph-linux-x86_64
+          - os: windows-latest
+            artifact: aleph-windows-x86_64.exe
+          - os: macos-latest
+            # El .app de macOS es un directorio: se sube comprimido en zip.
+            artifact: aleph-macos-arm64.zip
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      # Mismas deps que en test: PyInstaller importa PySide6 para analizar.
+      - name: Instalar deps de Qt (solo Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libegl1 libgl1 libxkbcommon-x11-0 libdbus-1-3 libfontconfig1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install ".[dev]"
+      - run: pyinstaller aleph.spec
+      - name: Preparar artefacto por SO
+        shell: bash
+        run: |
+          if [[ "${{ runner.os }}" == "Windows" ]]; then
+            cp dist/aleph.exe "${{ matrix.artifact }}"
+          elif [[ "${{ runner.os }}" == "macOS" ]]; then
+            # .app es un directorio: ditto lo empaqueta respetando recursos.
+            ditto -c -k --sequesterRsrc --keepParent \
+              dist/aleph.app "${{ matrix.artifact }}"
+          else
+            cp dist/aleph "${{ matrix.artifact }}"
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.artifact }}
+          if-no-files-found: error
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      # checkout es obligatorio: gh release create --verify-tag usa git para
+      # confirmar que el tag existe y para --generate-notes.
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          merge-multiple: true
+      - name: Crear Release con los 3 binarios
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${GITHUB_REF_NAME}" --generate-notes --verify-tag release-assets/*
