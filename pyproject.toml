@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "aleph"
-version = "0.2.0"
+version = "0.2.1"
 description = "Overlay semitransparente con guías de composición (tercios, centro, diagonales, áurea) para estudiar fotografía de películas"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -49,9 +49,9 @@ Issues = "https://github.com/LucasLassa/aleph/issues"
 include = ["src*"]
 
 [tool.setuptools.package-data]
-# El ícono tiene que viajar dentro del paquete para que exista tanto en
-# `pip install` como en el binario congelado.
-"src" = ["resources/*.png"]
+# El ícono y la fuente del panel tienen que viajar dentro del paquete
+# para que existan tanto en `pip install` como en el binario congelado.
+"src" = ["resources/*.png", "resources/*.otf"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

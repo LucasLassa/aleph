@@ -39,6 +39,7 @@ from src.core.capture import capture_with_guides
 from src.core.state import Rule, State
 from src.platform import capture as capture_platform
 from src.platform.base import Platform
+from src.ui.icons import resource_path
 from src.ui.manual import ManualDialog
 
 LABEL_DURATION_MS = 1500
@@ -173,7 +174,7 @@ PANEL_FONT_FAMILIES = (
     "FreeMono",
     "Monospace",
 )
-ORANGE_KID_PATH = "/home/lucas/.local/share/fonts/Orange Kid.otf"
+ORANGE_KID_FILENAME = "Orange Kid.otf"
 
 RESIZE_HANDLE = 18
 
@@ -196,7 +197,9 @@ _FONT_LOADED = False
 def _ensure_custom_font() -> None:
     global _FONT_LOADED
     if not _FONT_LOADED:
-        QFontDatabase.addApplicationFont(ORANGE_KID_PATH)
+        path = resource_path(ORANGE_KID_FILENAME)
+        if path.exists():
+            QFontDatabase.addApplicationFont(str(path))
         _FONT_LOADED = True
 
 

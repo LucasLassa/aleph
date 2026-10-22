@@ -30,9 +30,13 @@ entry = os.path.join(SPECPATH, "src", "main.py")
 # sale del .desktop + theme de iconos (lo instala src/platform/desktop.py).
 icon_png = os.path.join(SPECPATH, "src", "resources", "icon.png")
 
+# La fuente del panel viaja como dato: si no, el binario depende de que
+# la tenga instalada el sistema (en Windows no existe).
+font_otf = os.path.join(SPECPATH, "src", "resources", "Orange Kid.otf")
+
 # El PNG viaja como dato para que la app lo encuentre en runtime
 # (ver src/ui/icons.py: sys._MEIPASS/resources/icon.png).
-datas = [(icon_png, "resources")]
+datas = [(icon_png, "resources"), (font_otf, "resources")]
 
 with open(os.path.join(SPECPATH, "pyproject.toml"), "rb") as fh:
     version = tomllib.load(fh)["project"]["version"]

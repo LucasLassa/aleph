@@ -32,13 +32,39 @@ def test_icon_path_falls_back_to_package(monkeypatch, tmp_path):
 def test_window_icon_is_not_null():
     assert not icons.window_icon().isNull()
 
+def test_font_exists_in_source_tree():
+    path = icons.resource_path("Orange Kid.otf")
+    assert path.exists(), f"la fuente no está en {path}"
+    assert path.name == "Orange Kid.otf"
+
+def test_font_path_uses_mepass_when_frozen(monkeypatch, tmp_path):
+    meipass = tmp_path / "MEI"
+    (meipass / "resources").mkdir(parents=True)
+    (meipass / "resources" / "Orange Kid.otf").write_bytes(b"x")
+    monkeypatch.setattr(sys, "frozen", True, raising=False)
+    monkeypatch.setattr(sys, "_MEIPASS", str(meipass), raising=False)
+    assert icons.resource_path("Orange Kid.otf") == meipass / "resources" / "Orange Kid.otf"
+
+def test_panel_font_is_the_bundled_one():
+    from PySide6.QtGui import QFontDatabase
+
+    from src.ui import overlay_window as ow
+
+    ow._FONT_LOADED = False
+    ow._ensure_custom_font()
+    assert ow.resource_path(ow.ORANGE_KID_FILENAME).exists()
+    assert "Orange Kid" in QFontDatabase.families()
+
 def test_package_data_includes_icon():
     import tomllib
 
     root = Path(__file__).resolve().parent.parent
     with open(root / "pyproject.toml", "rb") as fh:
         cfg = tomllib.load(fh)
-    assert cfg["tool"]["setuptools"]["package-data"]["src"] == ["resources/*.png"]
+    assert cfg["tool"]["setuptools"]["package-data"]["src"] == [
+        "resources/*.png",
+        "resources/*.otf",
+    ]
 
 def test_desktop_entry_content():
     entry = desktop.DESKTOP_ENTRY.format(
