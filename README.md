@@ -77,7 +77,6 @@ Requisitos:
 
 - Python ≥ 3.11
 - PySide6 ≥ 6.5
-- En Wayland: grim (para la captura de pantalla)
 
 Instalación recomendada (venv):
 
@@ -88,8 +87,7 @@ pip install -e .[dev]
 aleph
 ```
 
-En Arch Linux o entornos con PEP 668, si preferís instalar en el
-usuario:
+En entornos con PEP 668, si preferís instalar en el usuario:
 
 ```bash
 pip install --user --break-system-packages -e .[dev]
@@ -101,9 +99,6 @@ También podés correrlo sin instalar:
 ```bash
 python -m src.main
 ```
-
-En Linux (vía pip, fuera de un binario) la app se desacopla de la terminal al arrancar:
-si la lanzás con `kitty -e aleph`, la consola se cierra sola y la overlay sigue viva.
 
 ## USO RÁPIDO
 
@@ -162,70 +157,29 @@ esquinas).
    vértice.
 3. Al soltar `Shift`, la regla queda fija.
 
-Las diagonales no tienen vértice: son líneas completas. Si hacés
-`Shift` + clic sobre una diagonal existente, la agarrás y la movés
-arrastrando. Si hacés `Shift` + clic sin haber pulsado antes un botón,
-no se crea nada.
-
 ### Cómo se borran
 
 `Shift + Backspace` (o el botón "Borrar mis líneas dibujadas" del panel)
-borra todas las reglas propias. Las guías preestablecidas no se tocan.
-
-Las reglas se guardan en proporción (no en píxeles), así que sobreviven
-a un redimensionado.
+borra todas las reglas propias.
 
 ### Espacio vacío
 
 La guía "Espacio vacío" no dibuja ninguna línea preestablecida: queda
-el lienzo limpio. Es útil para las capturas: con `Shift + S` en modo
-"Espacio vacío" sale la foto limpia con solo tus reglas encima.
+el lienzo limpio. Es útil para usar solo tus reglas.
 
 ## CAPTURAS DE PANTALLA
 
 `Shift + S` (o el botón "Capturar") guarda una foto con la guía activa y
-las reglas superpuestas. La foto sale limpia: se captura la pantalla sin
-la overlay y las líneas se pintan después.
+las reglas superpuestas.
 
 - Se guarda en Descargas, o en la carpeta elegida con "Guardar en".
 - Nombres: `aleph-AAAAMMDD-HHMMSS.png`.
-
-En Wayland es necesario `grim`: el protocolo no deja que una app lea la
-pantalla, así que se delega en esa herramienta.
 
 ## REDIMENSIONAR LA VENTANA
 
 `Shift + F` desbloquea el fullscreen y aparecen tiradores en las esquinas.
 Arrastralos para redimensionar. `Shift + F` de nuevo devuelve la ventana a
 pantalla completa.
-
-## LIMITACIONES CONOCIDAS
-
-En Hyprland el click-through del modo pasivo no funciona: el
-compositor ignora las input regions en toplevels. El botón "Volver al
-modo edición" no es clicable ahí; usá `M` o la señal SIGUSR1:
-
-```ini
-bind = SUPER, B, exec, pkill -USR1 -x -f aleph
-```
-
-En Hyprland la ventana tampoco queda siempre arriba por sí sola: hace
-falta una regla que la fije. La class de la ventana sale del nombre del
-binario, así que tiene que ser `aleph`:
-
-```ini
-hl.window_rule({
-    name = "aleph",
-    match = { class = "aleph" },
-    pin = true,
-    no_blur = true,
-})
-```
-
-En Wayland, la captura requiere `grim` instalado.
-En Windows y macOS el click-through funciona, pero no sobre juegos en
-fullscreen exclusivo. Sin firma, SmartScreen y Gatekeeper piden
-confirmación.
 
 ## CONFIGURACIÓN
 
@@ -234,8 +188,8 @@ La configuración se guarda en
 color de líneas y carpeta de capturas.
 
 No se persisten el modo marco, la guía activa, el modo fullscreen ni las
-reglas. La app arranca siempre con marco ON, en la regla de tercios, a
-pantalla completa y sin reglas.
+reglas. La app arranca siempre con marco ON, en la regla de tercios y a
+pantalla completa.
 
 ## DESARROLLO
 
@@ -267,12 +221,3 @@ src/
 └── utils/               # logger, geometría (Fibonacci, perpendicular)
 ```
 
-## DONACIONES
-
-La app incluye un grupo de donación en la franja del panel lateral
-(link de Mercado Pago + alias + CVU al portapapeles).
-Si te sirve el proyecto, podés invitarme un café desde ahí.
-
-## LICENCIA
-
-MIT. Ver LICENSE.
