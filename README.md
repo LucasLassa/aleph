@@ -128,13 +128,16 @@ Las teclas se configuran en `src/core/keymap.py`.
 
 ### Panel lateral
 
-Con el marco activo, se muestra un panel a la derecha que se despliega.
-Contiene:
+Con el marco activo, se muestra un panel a la derecha que se despliega,
+organizado en secciones:
 
-- La leyenda con el manual de uso.
-- Los botones de selección de guía, opacidad y color.
-- Los botones para crear reglas propias.
-- Los botones de captura, modo pasivo y cierre de la app.
+- **Reglas**: guía anterior/posterior, opacidad y color de las líneas.
+- **Dibujo**: botones para crear reglas propias (rectas, diagonales
+  y vértices).
+- **Listo para ver**: modo visualización (pasivo) y borrar las líneas
+  propias.
+- **Opciones**: captura de pantalla, carpeta de guardado y manual de uso.
+- **Apoya nuestra app**: link de donación, CVU y alias (al portapapeles).
 
 ### Modo pasivo
 
@@ -166,8 +169,8 @@ no se crea nada.
 
 ### Cómo se borran
 
-`Shift + Backspace` (o el botón ⌫ del panel) borra todas las reglas
-propias. Las guías preestablecidas no se tocan.
+`Shift + Backspace` (o el botón "Borrar mis líneas dibujadas" del panel)
+borra todas las reglas propias. Las guías preestablecidas no se tocan.
 
 Las reglas se guardan en proporción (no en píxeles), así que sobreviven
 a un redimensionado.
