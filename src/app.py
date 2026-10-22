@@ -29,6 +29,7 @@ class App(QApplication):
         self.platform = get_platform(window=None)
         self.window = OverlayWindow(self.state, self.platform)
         self.window.showFullScreen()
+        QTimer.singleShot(0, self.window.show_manual)
         self.aboutToQuit.connect(self._save)
         self._install_sigusr1()
         desktop.install_desktop_shortcut()

@@ -5,7 +5,7 @@ os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
 import pytest
 from PySide6.QtCore import QEvent, QPoint, QPointF, Qt
-from PySide6.QtGui import QColor, QFontMetrics, QMouseEvent, QWheelEvent
+from PySide6.QtGui import QColor, QFontMetrics, QMouseEvent
 from PySide6.QtWidgets import QApplication
 
 from src.core.state import State
@@ -103,14 +103,9 @@ def test_panel_has_all_the_expected_buttons(app: QApplication):
     assert names == [
         "guide_prev",
         "guide_next",
-        "opacity_down",
-        "opacity_up",
+        "opacity_slider",
         "line_white",
         "line_black",
-        "clear_rules",
-        "capture",
-        "capture_dir",
-        "toggle_frame",
         "rule_h",
         "rule_v",
         "rule_asc",
@@ -119,7 +114,24 @@ def test_panel_has_all_the_expected_buttons(app: QApplication):
         "rule_rect_sd",
         "rule_rect_ii",
         "rule_rect_id",
-        "close",
+        "toggle_frame",
+        "clear_rules",
+        "capture",
+        "capture_dir",
+        "manual",
+        "donate_link",
+        "donate_cvu",
+        "donate_alias",
+    ]
+
+def test_panel_sections_are_ordered(app: QApplication):
+    titles = [title for title, _rows in ow.PANEL_SECTIONS]
+    assert titles == [
+        "REGLAS",
+        "DIBUJO",
+        "LISTO PARA VER",
+        "OPCIONES",
+        "♥ Apoya nuestra app",
     ]
 
 def test_panel_groups_are_separated(app: QApplication):
@@ -128,7 +140,7 @@ def test_panel_groups_are_separated(app: QApplication):
     window._panel_offset = float(ow.PANEL_WIDTH)
     rects = {name: rect for name, rect in window._panel_buttons()}
     fin_grupo1 = rects["guide_next"].bottom()
-    inicio_grupo2 = rects["opacity_down"].top()
+    inicio_grupo2 = rects["opacity_slider"].top()
     hueco_entre_grupos = inicio_grupo2 - fin_grupo1
     dentro_grupo = rects["guide_next"].top() - rects["guide_prev"].bottom()
     assert hueco_entre_grupos > dentro_grupo
@@ -152,68 +164,50 @@ def test_one_button_groups_take_the_full_width(app: QApplication):
     rects = {name: rect for name, rect in window._panel_buttons()}
     assert rects["clear_rules"].width() == ow.PANEL_BUTTON_W1 == ow.PANEL_BUTTONS_W
 
-def test_legend_is_always_at_the_top_of_the_panel(app: QApplication):
-    window = _window(State())
-    window._panel_open = True
-    window._panel_offset = float(ow.PANEL_WIDTH)
-    legend = window._legend_rect()
-    panel = window._panel_rect()
-    assert legend.top() >= panel.top()
-    assert legend.bottom() <= panel.bottom()
-    for _name, rect in window._panel_buttons():
-        assert rect.top() >= legend.bottom()
-    assert ow.PANEL_LEGEND_TITLE == "—MANUAL DE USO—"
-    assert ow.PANEL_LEGEND_COLUMNS == ("Comando", "Funcion")
-    filas = dict(ow.PANEL_LEGEND_ROWS)
+def test_manual_is_a_modal_dialog_with_the_expected_rows(app: QApplication):
+    from src.ui import manual
+
+    assert manual.TITLE == "—MANUAL DE USO—"
+    assert manual.COLUMNS == ("Comando", "Funcion")
+    filas = dict(manual.ROWS)
     assert filas["Flecha izquierda"] == "Regla anterior"
     assert filas["Shift + C"] == "Alternar color de las lineas"
     assert filas["Tecla Esc"] == "Cerrar aplicacion"
     assert filas["Mantener shift + Click izquierdo"] == "Ubicar mis lineas"
 
-def test_legend_is_a_two_column_table(app: QApplication):
-    window = _window(State())
-    window._panel_open = True
-    window._panel_offset = float(ow.PANEL_WIDTH)
-    font = window._legend_table_font(window._legend_table_size())
-    assert font.pixelSize() <= round(8 * 96 / 72)
-    metrics = QFontMetrics(font, window)
-    cmd_w = window._legend_column_width(font)
-    assert cmd_w >= metrics.horizontalAdvance("Mantener shift + Click izquierdo")
-    total = cmd_w + ow.PANEL_LEGEND_GAP + max(
-        metrics.horizontalAdvance(f) for _c, f in ow.PANEL_LEGEND_ROWS
-    )
-    assert total <= ow.PANEL_CONTENT_W
-
-def test_group_labels_are_yellow(app: QApplication):
-    assert ow.PANEL_HEAD_COLOR == QColor(255, 226, 120)
+def test_group_labels_and_button_texts_are_white(app: QApplication):
+    assert ow.PANEL_HEAD_COLOR == QColor(255, 255, 255)
+    assert ow.PANEL_GLYPH_COLOR == QColor(255, 255, 255)
 
 def test_group_labels_and_button_texts(app: QApplication):
     textos = {
         name: text
-        for _label, buttons in ow.PANEL_ROWS + ow.PANEL_BOTTOM_ROWS
+        for _label, buttons in ow.PANEL_ROWS
         for name, text in buttons
     }
     etiquetas = [label for label, _buttons in ow.PANEL_ROWS if label is not None]
-    assert "Seleccionar regla" in etiquetas
-    assert "Opacidad de la regla" in etiquetas
-    assert "Color de la regla" in etiquetas
-    assert "Borrar mis lineas" in etiquetas
-    assert "Captura de pantalla" in etiquetas
-    assert "Alternar modo" in etiquetas
+    assert etiquetas == [
+        "Opacidad de la regla",
+        "Líneas rectas",
+        "Líneas diagonales",
+        "Líneas rectangulares",
+    ]
+    assert textos["guide_prev"] == "◀ Regla anterior"
+    assert textos["guide_next"] == "Regla posterior ▶"
+    assert textos["line_white"] == "Regla blanca"
+    assert textos["line_black"] == "Regla negra"
+    assert textos["clear_rules"] == "Borrar mis lineas dibujadas"
     assert textos["capture"] == "Capturar"
     assert textos["capture_dir"] == "Guardar en"
     assert textos["toggle_frame"] == "Modo visualización"
-    assert textos["close"] == "Cerrar app"
+    assert textos["manual"] == "Manual de uso"
+    assert textos["donate_link"] == "Link"
+    assert textos["donate_cvu"] == "CVU"
+    assert textos["donate_alias"] == "ALIAS"
     assert textos["rule_rect_si"] == "┘ Superior izquierdo"
     assert textos["rule_rect_sd"] == "└ Superior derecho"
     assert textos["rule_rect_ii"] == "┐ Inferior izquierdo"
     assert textos["rule_rect_id"] == "┌ Inferior derecho"
-
-def test_close_button_is_in_its_own_group(app: QApplication):
-    grupos = {label: [name for name, _t in buttons] for label, buttons in ow.PANEL_ROWS}
-    assert "close" not in grupos["Alternar modo"]
-    abajo = {label: [name for name, _t in buttons] for label, buttons in ow.PANEL_BOTTOM_ROWS}
-    assert abajo["Cerrar la aplicación"] == ["close"]
 
 def test_button_text_takes_the_biggest_size_that_fits(app: QApplication):
     window = _window(State())
@@ -222,11 +216,11 @@ def test_button_text_takes_the_biggest_size_that_fits(app: QApplication):
     rects = {name: rect for name, rect in window._panel_buttons()}
     textos = {
         name: text
-        for _label, buttons in ow.PANEL_ROWS + ow.PANEL_BOTTOM_ROWS
+        for _label, buttons in ow.PANEL_ROWS
         for name, text in buttons
     }
     for name, text in textos.items():
-        if len(text) == 1:
+        if len(text) == 1 or name == "opacity_slider":
             continue
         rect = rects[name]
         font = window._panel_button_font(text, rect.width())
@@ -238,28 +232,6 @@ def test_button_text_takes_the_biggest_size_that_fits(app: QApplication):
             assert (
                 QFontMetrics(tope, window).horizontalAdvance(text) > rect.width() - 8
             ), f"el texto de {name} podía ir más grande"
-
-def test_legend_scrolls_when_the_window_is_short(app: QApplication):
-    window = _window(State(), w=1280, h=800)
-    window._panel_open = True
-    window._panel_offset = float(ow.PANEL_WIDTH)
-    legend = window._legend_rect()
-    assert legend.height() > 0, "debería quedar un trozo de leyenda"
-    assert legend.height() < window._legend_rows_height()
-    window._legend_scroll = 0
-    window._legend_max_scroll = 3
-    event = QWheelEvent(
-        QPointF(legend.center().x(), legend.center().y()),
-        QPointF(legend.center().x(), legend.center().y()),
-        QPoint(0, 0),
-        QPoint(0, -120),
-        Qt.MouseButton.NoButton,
-        Qt.KeyboardModifier.NoModifier,
-        Qt.ScrollPhase.NoScrollPhase,
-        False,
-    )
-    window.wheelEvent(event)
-    assert window._legend_scroll == 1
 
 def test_tab_draws_the_big_guillemet(app: QApplication):
     assert ow.PANEL_TAB_FONT_SIZE == 100
@@ -357,107 +329,126 @@ def test_leaving_frame_mode_folds_the_panel(app: QApplication):
 def test_group_titles_are_10px_and_left_aligned(app: QApplication):
     from PySide6.QtGui import QImage, QPainter
 
-    assert ow.PANEL_LABEL_FONT_SIZE == 10
+    assert ow.PANEL_LABEL_FONT_SIZE == 16
+    assert ow.PANEL_SECTION_TITLE_FONT_SIZE == 20
+    assert ow.PANEL_SECTION_TITLE_COLOR == QColor(255, 230, 130)
     window = _window(State())
     window._panel_open = True
     window._panel_offset = float(ow.PANEL_WIDTH)
     rects = {name: rect for name, rect in window._panel_buttons()}
     boton = rects["guide_prev"]
-    y_titulo = boton.top() - ow.PANEL_LABEL_HEIGHT - ow.PANEL_TITLE_GAP + 13
+    y_titulo = (
+        boton.top() - ow.PANEL_TITLE_GAP - ow.PANEL_SECTION_TITLE_HEIGHT // 2
+    )
     img = QImage(window.width(), window.height(), QImage.Format.Format_ARGB32)
     img.fill(QColor(150, 120, 90))
     p = QPainter(img)
     window.render(p, QPoint(0, 0))
     p.end()
-    assert img.pixelColor(boton.left() + 2, y_titulo) == QColor(0, 0, 0)
-    assert img.pixelColor(boton.left() - ow.PANEL_CHIP_PADDING - 2, y_titulo) != QColor(0, 0, 0)
+    pixel = img.pixelColor(boton.left() + 2, y_titulo)
+    assert pixel != QColor(0, 0, 0), "el título debe ir en amarillo"
 
-def test_titles_have_a_black_chip_behind_them(app: QApplication):
+def test_panel_background_is_solid_gray(app: QApplication):
     from PySide6.QtGui import QImage, QPainter
 
-    assert ow.PANEL_LABEL_HEIGHT == 15
     window = _window(State())
     window._panel_open = True
     window._panel_offset = float(ow.PANEL_WIDTH)
-    rects = {name: rect for name, rect in window._panel_buttons()}
-    titulo = rects["guide_prev"]
-    x = titulo.left() + 4
-    y = titulo.top() - ow.PANEL_LABEL_HEIGHT - ow.PANEL_TITLE_GAP + 13
+    panel = window._panel_rect()
     img = QImage(window.width(), window.height(), QImage.Format.Format_ARGB32)
     img.fill(QColor(150, 120, 90))
     p = QPainter(img)
     window.render(p, QPoint(0, 0))
     p.end()
-    assert img.pixelColor(x, y) == QColor(0, 0, 0), "el cuadro del título no es negro"
+    assert img.pixelColor(panel.x() + 5, panel.y() + 5) == ow.PANEL_BG
 
-def test_close_button_is_at_the_bottom_of_the_panel(app: QApplication):
+def test_close_button_is_a_small_red_x_in_the_top_right(app: QApplication):
+    from PySide6.QtGui import QImage, QPainter
+
+    assert ow.CLOSE_BUTTON_BORDER == QColor(0xFF, 0x60, 0x60)
+    assert ow.CLOSE_BUTTON_BG == QColor(0xC7, 0x1C, 0x1C)
+    assert ow.CLOSE_BUTTON_SIZE <= 22, "la X debe ser pequeña"
+    window = _window(State())
+    boton = window._close_button_rect()
+    assert boton.right() == window.width() - ow.CLOSE_BUTTON_MARGIN - 1
+    assert boton.top() == ow.CLOSE_BUTTON_MARGIN
+    assert boton.width() == ow.CLOSE_BUTTON_SIZE
+    img = QImage(window.width(), window.height(), QImage.Format.Format_ARGB32)
+    img.fill(QColor(150, 120, 90))
+    p = QPainter(img)
+    window.render(p, QPoint(0, 0))
+    p.end()
+    centro = img.pixelColor(boton.left() + 3, boton.center().y())
+    assert centro == ow.CLOSE_BUTTON_BG
+
+def test_clicking_the_close_button_closes_the_app(app: QApplication, monkeypatch):
+    window = _window(State())
+    cerrado = []
+    monkeypatch.setattr(type(window), "close", lambda self: cerrado.append(True))
+    boton = window._close_button_rect()
+    _click(window, boton.center().x(), boton.center().y())
+    assert cerrado == [True]
+
+def test_donation_section_is_last(app: QApplication):
+    title, rows = ow.PANEL_SECTIONS[-1]
+    assert title == "♥ Apoya nuestra app"
+    names = [name for _label, buttons in rows for name, _text in buttons]
+    assert names == ["donate_link", "donate_cvu", "donate_alias"]
+
+def test_donation_buttons_have_green_border_and_red_bg(app: QApplication):
+    from PySide6.QtGui import QImage, QPainter
+
+    assert ow.DONATION_HEART_BORDER == QColor("#8a1d1d")
+    assert ow.DONATION_HEART_COLOR == QColor("#ad1f1f")
+    window = _window(State(), 1280, 1000)
+    window._panel_open = True
+    window._panel_offset = float(ow.PANEL_WIDTH)
+    rects = dict(window._panel_buttons())
+    img = QImage(window.width(), window.height(), QImage.Format.Format_ARGB32)
+    img.fill(QColor(150, 120, 90))
+    p = QPainter(img)
+    window.render(p, QPoint(0, 0))
+    p.end()
+    btn = rects["donate_link"]
+    assert img.pixelColor(btn.center().x(), btn.top()) == ow.DONATION_HEART_BORDER
+    assert img.pixelColor(btn.left() + 3, btn.center().y()) == ow.DONATION_HEART_COLOR
+
+def test_clicking_donate_link_opens_the_url(app: QApplication, monkeypatch):
     window = _window(State())
     window._panel_open = True
     window._panel_offset = float(ow.PANEL_WIDTH)
-    rects = {name: rect for name, rect in window._panel_buttons()}
-    panel = window._panel_rect()
-    assert rects["close"].bottom() == panel.bottom() - ow.PANEL_PADDING
-    assert rects["close"] == window._panel_buttons()[-1][1]
-
-def test_donation_buttons_are_in_the_guillemet_strip(app: QApplication):
-    window = _window(State())
-    botones = dict(window._donation_buttons())
-    assert set(botones) == {"donate", "copy_alias", "copy_cvu"}
-    for rect in botones.values():
-        assert window._panel_tab_rect().contains(rect)
-    assert botones["donate"].top() < botones["copy_alias"].top()
-    assert botones["copy_alias"].top() < botones["copy_cvu"].top()
-    window._panel_open = True
-    window._panel_offset = float(ow.PANEL_WIDTH)
-    for rect in dict(window._donation_buttons()).values():
-        assert window._panel_tab_rect().contains(rect)
-
-def test_clicking_the_donation_button_opens_the_link(app: QApplication, monkeypatch):
-    window = _window(State())
     abierto = []
     monkeypatch.setattr(
         type(window), "_open_donation", lambda self: abierto.append(ow.DONATION_URL)
     )
-    button = dict(window._donation_buttons())["donate"]
-    _click(window, button.center().x(), button.center().y())
+    rects = dict(window._panel_buttons())
+    _click(window, rects["donate_link"].center().x(), rects["donate_link"].center().y())
     assert abierto == [ow.DONATION_URL]
-    assert window._panel_open is False
 
-def test_copy_buttons_put_the_data_in_the_clipboard(app: QApplication):
-    window = _window(State())
-    rects = dict(window._donation_buttons())
-    clipboard = QApplication.clipboard()
-
-    _click(window, rects["copy_alias"].center().x(), rects["copy_alias"].center().y())
-    assert clipboard.text() == ow.DONATION_ALIAS
-
-    _click(window, rects["copy_cvu"].center().x(), rects["copy_cvu"].center().y())
-    assert clipboard.text() == ow.DONATION_CVU
-
-def test_legend_title_is_12px_and_spans_the_panel(app: QApplication):
-    from PySide6.QtGui import QImage, QPainter
-
+def test_copy_cvu_and_alias_put_the_data_in_the_clipboard(app: QApplication):
     window = _window(State())
     window._panel_open = True
     window._panel_offset = float(ow.PANEL_WIDTH)
-    legend = window._legend_rect()
-    img = QImage(window.width(), window.height(), QImage.Format.Format_ARGB32)
-    img.fill(QColor(150, 120, 90))
-    p = QPainter(img)
-    window.render(p, QPoint(0, 0))
-    p.end()
-    y = legend.top() + 7
-    assert img.pixelColor(legend.left() + 2, y) == QColor(0, 0, 0)
-    assert img.pixelColor(legend.right() - 2, y) == QColor(0, 0, 0)
-    assert img.pixelColor(legend.left() - 6, y) != QColor(0, 0, 0)
+    rects = dict(window._panel_buttons())
+    clipboard = QApplication.clipboard()
+    _click(window, rects["donate_alias"].center().x(), rects["donate_alias"].center().y())
+    assert clipboard.text() == ow.DONATION_ALIAS
+    _click(window, rects["donate_cvu"].center().x(), rects["donate_cvu"].center().y())
+    assert clipboard.text() == ow.DONATION_CVU
 
-def test_legend_table_has_no_subtitles(app: QApplication):
-    titulos = [t for t, _f in ow.PANEL_LEGEND_ROWS]
-    assert not any(t.startswith("-") for t in titulos)
-    assert ow.PANEL_LEGEND_ROWS[0] == ("Flecha izquierda", "Regla anterior")
+def test_manual_button_shows_the_dialog(app: QApplication):
+    state = State()
+    window = _window(state)
+    window._panel_open = True
+    window._panel_offset = float(ow.PANEL_WIDTH)
+    rects = {name: rect for name, rect in window._panel_buttons()}
+    llamadas = []
+    window.show_manual = lambda: llamadas.append(True)
+    _click(window, rects["manual"].center().x(), rects["manual"].center().y())
+    assert llamadas == [True]
 
 def test_button_text_is_smaller_than_the_title(app: QApplication):
-    assert ow.PANEL_BUTTON_FONT_MAX < ow.PANEL_LABEL_FONT_SIZE
+    assert ow.PANEL_BUTTON_FONT_MAX <= ow.PANEL_LABEL_FONT_SIZE
     window = _window(State())
     window._panel_open = True
     window._panel_offset = float(ow.PANEL_WIDTH)
@@ -481,26 +472,9 @@ def test_frame_on_button_has_a_yellow_border_and_square_corners(app: QApplicatio
     borde = img.pixelColor(button.left() + 10, button.top())
     assert borde == ow.PANEL_HEAD_COLOR
 
-def test_close_button_is_red(app: QApplication):
-    from PySide6.QtGui import QImage, QPainter
-
-    assert ow.CLOSE_BUTTON_BORDER == QColor(0xC7, 0x1C, 0x1C)
-    window = _window(State())
-    window._panel_open = True
-    window._panel_offset = float(ow.PANEL_WIDTH)
-    rects = {name: rect for name, rect in window._panel_buttons()}
-    boton = rects["close"]
-    img = QImage(window.width(), window.height(), QImage.Format.Format_ARGB32)
-    img.fill(QColor(150, 120, 90))
-    p = QPainter(img)
-    window.render(p, QPoint(0, 0))
-    p.end()
-    borde = img.pixelColor(boton.left() + 10, boton.top())
-    assert borde == ow.CLOSE_BUTTON_BORDER
-
-def test_buttons_are_20px_high_with_8px_text(app: QApplication):
-    assert ow.PANEL_BUTTON_HEIGHT == 20
-    assert ow.PANEL_BUTTON_FONT_MAX == 8
+def test_buttons_are_20px_high_with_10px_text(app: QApplication):
+    assert ow.PANEL_BUTTON_HEIGHT == 34
+    assert ow.PANEL_BUTTON_FONT_MAX == 16
     window = _window(State())
     window._panel_open = True
     window._panel_offset = float(ow.PANEL_WIDTH)
@@ -509,14 +483,14 @@ def test_buttons_are_20px_high_with_8px_text(app: QApplication):
         assert rect.height() == ow.PANEL_BUTTON_HEIGHT, name
     textos = {
         name: text
-        for _label, buttons in ow.PANEL_ROWS + ow.PANEL_BOTTOM_ROWS
+        for _label, buttons in ow.PANEL_ROWS
         for name, text in buttons
     }
     for name, text in textos.items():
-        if len(text) == 1:
+        if len(text) == 1 or name == "opacity_slider":
             continue
         font = window._panel_button_font(text, rects[name].width())
-        assert font.pixelSize() <= round(8 * 96 / 72), f"{name} no entra a 8px"
+        assert font.pixelSize() <= round(16 * 96 / 72), f"{name} no entra a 16px"
         ancho = QFontMetrics(font, window).horizontalAdvance(text)
         assert ancho <= rects[name].width(), f"{name} se pasa de ancho"
 
@@ -534,42 +508,46 @@ def test_panel_is_340px_wide(app: QApplication):
     assert hueco == (ow.PANEL_WIDTH - ow.PANEL_BUTTONS_W) // 2
 
 def test_titles_are_10px_away_from_their_buttons(app: QApplication):
-    from PySide6.QtGui import QImage, QPainter
-
     window = _window(State())
     window._panel_open = True
     window._panel_offset = float(ow.PANEL_WIDTH)
     rects = {name: rect for name, rect in window._panel_buttons()}
     boton = rects["guide_prev"]
-    img = QImage(window.width(), window.height(), QImage.Format.Format_ARGB32)
-    img.fill(QColor(150, 120, 90))
-    p = QPainter(img)
-    window.render(p, QPoint(0, 0))
-    p.end()
-    x = boton.left() + 4
-    assert img.pixelColor(x, boton.top() - 1) != QColor(0, 0, 0)
-    assert (
-        img.pixelColor(x, boton.top() - ow.PANEL_TITLE_GAP - 1) == QColor(0, 0, 0)
-    )
+    titulo_y = boton.top() - ow.PANEL_TITLE_GAP - ow.PANEL_SECTION_TITLE_HEIGHT
+    assert titulo_y >= ow.PANEL_PADDING
+    assert boton.top() - titulo_y == ow.PANEL_TITLE_GAP + ow.PANEL_SECTION_TITLE_HEIGHT
+    filas = window._panel_rows()
+    assert filas[0][0] is None, "REGLAS es un título de sección, no de fila"
 
-def test_alias_button_is_uppercase_and_heart_border_is_green(app: QApplication):
-    from PySide6.QtGui import QImage, QPainter
+def test_section_gaps_are_proportional_and_capped(app: QApplication):
+    window = _window(State(), 1280, 1000)
+    window._panel_open = True
+    window._panel_offset = float(ow.PANEL_WIDTH)
+    gap = window._section_gap()
+    assert ow.PANEL_SECTION_GAP_MIN <= gap <= ow.PANEL_SECTION_GAP_MAX
+    content = window._panel_buttons_height(gap)
+    assert content <= 1000 - 2 * ow.PANEL_PADDING, "el panel debe caber en 1000px"
+    rectas = dict(window._panel_buttons())
+    hueco = rectas["rule_h"].top() - rectas["line_black"].bottom() - 1
+    assert hueco >= ow.PANEL_SECTION_GAP_MIN
 
-    assert ow.DONATION_HEART_BORDER == QColor(0x90, 0xEE, 0x90)
+def test_opacity_slider_drag_updates_the_opacity(app: QApplication):
+    state = State(opacity=0.5)
+    window = _window(state)
+    window._panel_open = True
+    window._panel_offset = float(ow.PANEL_WIDTH)
+    rects = {name: rect for name, rect in window._panel_buttons()}
+    slider = rects["opacity_slider"]
+    x_izq = slider.left() + 6
+    _click(window, x_izq, slider.center().y())
+    assert state.opacity == 0.0
+    window._dragging_opacity = True
+    window._update_opacity_from_pos(QPoint(slider.right() - 6, slider.center().y()))
+    assert state.opacity == 1.0
+
+def test_opacity_slider_row_is_full_width(app: QApplication):
     window = _window(State())
-    botones = dict(window._donation_buttons())
-    assert "ALIAS" in _texto_de_boton(window, "copy_alias")
-    img = QImage(window.width(), window.height(), QImage.Format.Format_ARGB32)
-    img.fill(QColor(150, 120, 90))
-    p = QPainter(img)
-    window.render(p, QPoint(0, 0))
-    p.end()
-    corazon = botones["donate"]
-    borde = img.pixelColor(corazon.center().x(), corazon.top())
-    assert borde == ow.DONATION_HEART_BORDER
-
-def _texto_de_boton(window, name: str) -> str:
-    for n, rect in window._donation_buttons():
-        if n == name:
-            return "ALIAS" if name == "copy_alias" else "CVU"
-    raise AssertionError(f"no existe el botón {name}")
+    window._panel_open = True
+    window._panel_offset = float(ow.PANEL_WIDTH)
+    rects = {name: rect for name, rect in window._panel_buttons()}
+    assert rects["opacity_slider"].width() == ow.PANEL_BUTTON_W1

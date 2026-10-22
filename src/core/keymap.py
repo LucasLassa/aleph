@@ -40,8 +40,8 @@ FRAME_GATED: frozenset[str] = frozenset()
 ACTIONS: dict[str, Callable[[State], None]] = {
     "guide_prev": _guide_prev,
     "guide_next": _guide_next,
-    "opacity_up": lambda s: setattr(s, "opacity", min(1.0, round(s.opacity + 0.05, 2))),
-    "opacity_down": lambda s: setattr(s, "opacity", max(0.1, round(s.opacity - 0.05, 2))),
+    "opacity_up": lambda s: setattr(s, "opacity", min(1.0, round(s.opacity + 0.1, 2))),
+    "opacity_down": lambda s: setattr(s, "opacity", max(0.0, round(s.opacity - 0.1, 2))),
     "toggle_frame": _toggle_frame,
     "line_white": _line_white,
     "line_black": _line_black,

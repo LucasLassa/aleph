@@ -44,7 +44,7 @@ def test_guide_and_opacity_work_with_frame_off():
     assert s.guide_index != 3
     assert keymap.handle("Left", s) == "guide_prev"
     assert keymap.handle("Up", s) == "opacity_up"
-    assert s.opacity == 0.55
+    assert s.opacity == 0.6
     assert keymap.handle("Down", s) == "opacity_down"
     assert s.opacity == 0.5
 
@@ -58,11 +58,11 @@ def test_opacity_is_clamped():
     assert s.opacity == 1.0
     keymap.handle("Up", s)
     assert s.opacity == 1.0
-    s2 = State(opacity=0.12)
+    s2 = State(opacity=0.05)
     keymap.handle("Down", s2)
-    assert s2.opacity == 0.1
+    assert s2.opacity == 0.0
     keymap.handle("Down", s2)
-    assert s2.opacity == 0.1
+    assert s2.opacity == 0.0
 
 def test_quit_is_reported_and_state_untouched():
     s = State()
