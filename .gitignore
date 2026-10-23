@@ -25,7 +25,4 @@ htmlcov/
 *.swp
 .DS_Store
 
-# Configuración local del usuario (se regenera con los defaults)
-# ~/.config/aleph/config.json vive fuera del repo, pero por
-# si se ejecuta con XDG alterado:
 .config/
