@@ -31,7 +31,6 @@ from PySide6.QtGui import (
     QPainter,
     QPaintEvent,
     QPen,
-    QResizeEvent,
 )
 from PySide6.QtWidgets import QApplication, QFileDialog, QWidget
 
@@ -848,10 +847,6 @@ class OverlayWindow(QWidget):
     def _end_resize(self) -> None:
         self._resizing = None
         self._resize_origin = None
-
-    def resizeEvent(self, event: QResizeEvent) -> None:
-        super().resizeEvent(event)
-        self.platform.refresh_click_through()
 
     def leaveEvent(self, event: QEvent) -> None:
         self.setCursor(QCursor(Qt.CursorShape.ArrowCursor))

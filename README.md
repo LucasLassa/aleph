@@ -15,8 +15,7 @@ películas, series y anime.
 - Definición de reglas personalizadas por el usuario.
 
 - Modo pasivo (click-through): la ventana deja de capturar el ratón y
-  los clics pasan al contenido de abajo, salvo el botón "Volver al
-  modo edición", que sigue siendo clicable.
+  los clics pasan al contenido de abajo.
 
 - Ventana redimensionable, para ajustar los marcos a diferentes
   resoluciones.
@@ -139,8 +138,7 @@ organizado en secciones:
 
 Con `M` (o el botón "Modo visualización") la overlay quita todo el cromo
 y deja solo las guías. Abajo a la derecha aparece un botón "Volver al
-modo edición": es lo único clicable en este modo, el resto de los clics
-pasa al contenido de abajo.
+modo edición".
 
 Los atajos con Shift siguen funcionando con el marco OFF. El teclado
 también responde sin botones visibles: `←` `→`, `↑` `↓`, `Shift + C` y `Esc`.

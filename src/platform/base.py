@@ -16,9 +16,6 @@ class Platform(ABC):
     def set_click_through(self, enabled: bool) -> None:
         pass
 
-    def refresh_click_through(self) -> None:
-        pass
-
     @abstractmethod
     def set_always_on_top(self, enabled: bool) -> None:
         pass
