@@ -54,3 +54,35 @@ def test_qt_generic_flags():
     platform.set_click_through(False)
     platform.set_always_on_top(False)
     assert platform.get_screen_geometry() is not None or True
+
+def test_wayland_click_through_masks_only_the_button():
+    from PySide6.QtGui import QRegion
+    from PySide6.QtWidgets import QApplication
+
+    from src.core.state import State
+    from src.ui.overlay_window import OverlayWindow
+
+    QApplication.instance() or QApplication([])
+    platform = LinuxWaylandPlatform(None)
+    window = OverlayWindow(State(frame_mode=False), platform)
+
+    platform.set_click_through(True)
+    assert window.mask() == QRegion(window._frame_on_button_rect())
+
+    platform.set_click_through(False)
+    assert window.mask() == QRegion(window.rect())
+
+def test_wayland_mask_follows_resize():
+    from PySide6.QtGui import QRegion
+    from PySide6.QtWidgets import QApplication
+
+    from src.core.state import State
+    from src.ui.overlay_window import OverlayWindow
+
+    QApplication.instance() or QApplication([])
+    platform = LinuxWaylandPlatform(None)
+    window = OverlayWindow(State(frame_mode=True), platform)
+
+    platform.set_click_through(True)
+    window.resize(640, 480)
+    assert window.mask() == QRegion(window._frame_on_button_rect())

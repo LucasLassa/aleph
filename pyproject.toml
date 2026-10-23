@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "aleph"
-version = "0.2.1"
+version = "0.2.2"
 description = "Overlay semitransparente con guías de composición (tercios, centro, diagonales, áurea) para estudiar fotografía de películas"
 readme = "README.md"
 requires-python = ">=3.11"
