@@ -39,6 +39,25 @@ def _draw_diagonal(
     y0 = py - slope * largo / 2
     _line(painter, x0, y0, x0 + largo, y0 + slope * largo, color)
 
+def _draw_vanishing(painter: QPainter, rule: Rule, w: float, h: float, color: QColor) -> None:
+    vx = rule.x * w
+    vy = rule.y * h
+    fracs = (0.0, 0.25, 0.5, 0.75, 1.0)
+    # esquinas compartidas entre caras: se dibujan una sola vez
+    anchors: list[tuple[float, float]] = []
+    for f in fracs:
+        anchors.append((f * w, 0.0))    # cara superior
+        anchors.append((f * w, h))      # cara inferior
+    for f in fracs[1:-1]:
+        anchors.append((0.0, f * h))    # cara izquierda
+        anchors.append((w, f * h))      # cara derecha
+    for ax, ay in anchors:
+        _line(painter, ax, ay, vx, vy, color)
+    painter.setPen(QPen(QColor(0, 0, 0, 200), 6.0))
+    painter.drawPoint(QPointF(vx, vy))
+    painter.setPen(QPen(color, 3.0))
+    painter.drawPoint(QPointF(vx, vy))
+
 def draw(painter: QPainter, w: int, h: int, rules: list[Rule], color: QColor) -> None:
     for rule in rules:
         if rule.kind == "h":
@@ -51,3 +70,5 @@ def draw(painter: QPainter, w: int, h: int, rules: list[Rule], color: QColor) ->
             _draw_diagonal(painter, rule, float(w), float(h), color, ascendente=False)
         elif rule.kind == "rect":
             _draw_rect(painter, rule, float(w), float(h), color)
+        elif rule.kind == "fuga":
+            _draw_vanishing(painter, rule, float(w), float(h), color)

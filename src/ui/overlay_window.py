@@ -96,15 +96,15 @@ PANEL_ROWS: list[tuple[str | None, list[tuple[str, str]]]] = [
         [("line_white", "Regla blanca"), ("line_black", "Regla negra")],
     ),
     (
-        "Líneas rectas",
+        None,
         [("rule_h", "─ Horizontal"), ("rule_v", "│ Vertical")],
     ),
     (
-        "Líneas diagonales",
+        None,
         [("rule_asc", "╱ Ascendente"), ("rule_desc", "╲ Descendente")],
     ),
     (
-        "Líneas rectangulares",
+        None,
         [
             ("rule_rect_si", "┘ Superior izquierdo"),
             ("rule_rect_sd", "└ Superior derecho"),
@@ -116,6 +116,10 @@ PANEL_ROWS: list[tuple[str | None, list[tuple[str, str]]]] = [
             ("rule_rect_ii", "┐ Inferior izquierdo"),
             ("rule_rect_id", "┌ Inferior derecho"),
         ],
+    ),
+    (
+        None,
+        [("rule_fuga", "◇ Fuga")],
     ),
     (
         None,
@@ -141,10 +145,10 @@ PANEL_ROWS: list[tuple[str | None, list[tuple[str, str]]]] = [
 
 PANEL_SECTIONS: list[tuple[str | None, list[tuple[str | None, list[tuple[str, str]]]]]] = [
     ("REGLAS", PANEL_ROWS[0:3]),
-    ("DIBUJO", PANEL_ROWS[3:7]),
-    ("LISTO PARA VER", PANEL_ROWS[7:9]),
-    ("OPCIONES", PANEL_ROWS[9:11]),
-    ("♥ Apoya nuestra app", PANEL_ROWS[11:12]),
+    ("DIBUJO", PANEL_ROWS[3:8]),
+    ("LISTO PARA VER", PANEL_ROWS[8:10]),
+    ("OPCIONES", PANEL_ROWS[10:12]),
+    ("♥ Apoya nuestra app", PANEL_ROWS[12:13]),
 ]
 
 RULE_KINDS: dict[str, tuple[str, int]] = {
@@ -156,6 +160,7 @@ RULE_KINDS: dict[str, tuple[str, int]] = {
     "rule_rect_sd": ("rect", 1),
     "rule_rect_ii": ("rect", 2),
     "rule_rect_id": ("rect", 3),
+    "rule_fuga": ("fuga", -1),
 }
 
 PANEL_LABEL_FONT_SIZE = 16
@@ -214,6 +219,7 @@ class OverlayWindow(QWidget):
         self.platform.window = self
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
         if not state.frame_mode:
             self.platform.set_click_through(True)
         self._label_text: str | None = None
@@ -974,8 +980,6 @@ class OverlayWindow(QWidget):
         if action is not None:
             if action == "toggle_frame":
                 self.apply_frame_mode()
-            elif action == "toggle_fullscreen":
-                self.toggle_fullscreen()
             elif action == "capture":
                 self.start_capture()
             elif action == "clear_rules":
@@ -983,10 +987,16 @@ class OverlayWindow(QWidget):
                 self._show_label("Reglas borradas")
             elif action in ("guide_prev", "guide_next"):
                 self._show_label(guides.POOL[self.state.guide_index])
+            elif action == "toggle_panel":
+                if self.state.frame_mode:
+                    self.toggle_panel()
             else:
                 self.update()
         else:
             super().keyPressEvent(event)
+
+    def focusNextPrevChild(self, next: bool) -> bool:
+        return False
 
     def keyReleaseEvent(self, event: QKeyEvent) -> None:
         if event.key() == Qt.Key.Key_Shift:

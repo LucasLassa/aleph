@@ -26,9 +26,6 @@ def _line_black(s: State) -> None:
 def _toggle_line_color(s: State) -> None:
     s.line_dark = not s.line_dark
 
-def _toggle_fullscreen(s: State) -> None:
-    s.fullscreen = not s.fullscreen
-
 def _clear_rules(s: State) -> None:
     s.rules.clear()
 
@@ -46,10 +43,10 @@ ACTIONS: dict[str, Callable[[State], None]] = {
     "line_white": _line_white,
     "line_black": _line_black,
     "toggle_line_color": _toggle_line_color,
-    "toggle_fullscreen": _toggle_fullscreen,
     "clear_rules": _clear_rules,
     "capture": _capture,
     "quit": lambda s: None,
+    "toggle_panel": lambda s: None,
 }
 
 KEYMAP: dict[str, str] = {
@@ -57,12 +54,12 @@ KEYMAP: dict[str, str] = {
     "Right": "guide_next",
     "Up": "opacity_up",
     "Down": "opacity_down",
-    "M": "toggle_frame",
-    "Shift+F": "toggle_fullscreen",
-    "Shift+Backspace": "clear_rules",
+    "Shift+M": "toggle_frame",
+    "Shift+D": "clear_rules",
     "Shift+S": "capture",
     "Shift+C": "toggle_line_color",
     "Esc": "quit",
+    "Tab": "toggle_panel",
 }
 
 

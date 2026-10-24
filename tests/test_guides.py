@@ -29,9 +29,9 @@ def _has_white(img):
         img.pixelColor(x, y).red() > 200 for x in range(img.width()) for y in range(img.height())
     )
 
-def test_pool_has_10_unique_names():
-    assert len(guides.POOL) == 10
-    assert len(set(guides.POOL)) == 10
+def test_pool_has_11_unique_names():
+    assert len(guides.POOL) == 11
+    assert len(set(guides.POOL)) == 11
     assert all(name.strip() for name in guides.POOL)
 
 def test_pool_names_match_expected():
@@ -46,11 +46,12 @@ def test_pool_names_match_expected():
         "Espiral Fibonacci (inf-der)",
         "Centro",
         "Diagonales",
+        "Rejilla áurea (Phi Grid)",
     ]
     assert guides.POOL == expected
 
-def test_pool_has_ten_guides():
-    assert len(guides.POOL) == 10
+def test_pool_has_eleven_guides():
+    assert len(guides.POOL) == 11
 
 def test_default_guide_is_thirds():
     assert State().guide_index == guides.POOL.index("Regla de tercios")
@@ -104,7 +105,7 @@ def test_draw_handles_all_indices():
     pm = QPixmap(200, 120)
     pm.fill()
     p = QPainter(pm)
-    for idx in range(-1, 10):
+    for idx in range(-1, 11):
         s = State(guide_index=idx)
         guides.draw(p, 200, 120, s)
     p.end()

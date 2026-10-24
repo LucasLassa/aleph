@@ -68,6 +68,33 @@ def test_click_on_tab_opens_and_closes_panel(app: QApplication):
     assert window._panel_open is False
     assert window._panel_anim.endValue() == 0
 
+def _press_tab(window: OverlayWindow) -> None:
+    from PySide6.QtGui import QKeyEvent
+
+    window.keyPressEvent(
+        QKeyEvent(QEvent.Type.KeyPress, Qt.Key.Key_Tab, Qt.KeyboardModifier.NoModifier)
+    )
+
+def test_tab_key_opens_and_closes_panel(app: QApplication):
+    window = _window(State())
+    assert window._panel_open is False
+    _press_tab(window)
+    assert window._panel_open is True
+    assert window._panel_anim.endValue() == ow.PANEL_WIDTH
+    _press_tab(window)
+    assert window._panel_open is False
+    assert window._panel_anim.endValue() == 0
+
+def test_tab_key_does_nothing_when_frame_is_off(app: QApplication):
+    window = _window(State(frame_mode=False))
+    _press_tab(window)
+    assert window._panel_open is False
+
+def test_tab_key_does_not_move_focus(app: QApplication):
+    window = _window(State())
+    assert window.focusNextPrevChild(True) is False
+    assert window.focusNextPrevChild(False) is False
+
 def test_panel_width_is_320_when_deployed(app: QApplication):
     window = _window(State())
     window._panel_open = True
@@ -114,6 +141,7 @@ def test_panel_has_all_the_expected_buttons(app: QApplication):
         "rule_rect_sd",
         "rule_rect_ii",
         "rule_rect_id",
+        "rule_fuga",
         "toggle_frame",
         "clear_rules",
         "capture",
@@ -168,12 +196,47 @@ def test_manual_is_a_modal_dialog_with_the_expected_rows(app: QApplication):
     from src.ui import manual
 
     assert manual.TITLE == "—MANUAL DE USO—"
-    assert manual.COLUMNS == ("Comando", "Funcion")
+    assert manual.COLUMNS == ("Funcion", "Comando")
     filas = dict(manual.ROWS)
-    assert filas["Flecha izquierda"] == "Regla anterior"
-    assert filas["Shift + C"] == "Alternar color de las lineas"
-    assert filas["Tecla Esc"] == "Cerrar aplicacion"
-    assert filas["Mantener shift + Click izquierdo"] == "Ubicar mis lineas"
+    assert filas["Seleccionar regla anterior"] == "Flecha izquierda"
+    assert filas["Cambiar el color de la regla"] == "Shift + C"
+    assert filas["Cerrar Aleph"] == "ESC - Escape"
+    assert filas["Abrir y Cerrar panel de opciones"] == "TAB - Tabulador"
+    assert filas["Alternar a modo visualizacion"] == "Shift + M"
+    assert filas["Borrar mis reglas dibujadas"] == "Shift + D"
+
+def test_manual_fonts_and_colors_match_the_panel_style(app: QApplication):
+    from PySide6.QtGui import QFont
+
+    from src.ui import manual
+
+    assert manual.TITLE_FONT_PX == 20
+    assert manual.BODY_FONT_PX == 16
+    assert manual.BG == QColor(45, 45, 48)
+    assert manual.ROW_ALT_BG == QColor(35, 35, 38)
+    assert manual.BG.alpha() == 255, "el fondo debe ser gris sólido"
+    assert not hasattr(manual, "DESCRIPTION_TITLE")
+    assert manual.HEAD_COLOR == QColor(255, 230, 130)
+    assert manual.FONT_FAMILIES[0] == "Orange Kid"
+
+    manual._FONT_LOADED = False
+    manual._ensure_custom_font()
+    titulo = manual._ui_font(manual.TITLE_FONT_PX)
+    cuerpo = manual._ui_font(manual.BODY_FONT_PX)
+    assert titulo.pixelSize() == 20
+    assert cuerpo.pixelSize() == 16
+    assert titulo.family().lower() == "orange kid", "Orange Kid debería estar disponible"
+    assert QFont(titulo.family()).family()
+
+def test_manual_dialog_fits_on_screen(app: QApplication):
+    from src.ui import manual
+
+    d = manual.ManualDialog()
+    d.show()
+    screen = app.primaryScreen()
+    assert d.width() <= screen.availableGeometry().width()
+    assert d.height() <= screen.availableGeometry().height()
+    d.close()
 
 def test_group_labels_and_button_texts_are_white(app: QApplication):
     assert ow.PANEL_HEAD_COLOR == QColor(255, 255, 255)
@@ -188,9 +251,6 @@ def test_group_labels_and_button_texts(app: QApplication):
     etiquetas = [label for label, _buttons in ow.PANEL_ROWS if label is not None]
     assert etiquetas == [
         "Opacidad de la regla",
-        "Líneas rectas",
-        "Líneas diagonales",
-        "Líneas rectangulares",
     ]
     assert textos["guide_prev"] == "◀ Regla anterior"
     assert textos["guide_next"] == "Regla posterior ▶"

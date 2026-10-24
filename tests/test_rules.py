@@ -71,20 +71,42 @@ def test_rule_vertex_stored_as_fraction():
     assert 0.0 <= rule.x <= 1.0
     assert 0.0 <= rule.y <= 1.0
 
-def test_shift_backspace_clears_only_user_rules():
+def test_fuga_rule_draws_anchor_on_each_face_midpoint():
+    img = _render([Rule(kind="fuga", x=0.5, y=0.5)])
+    # anclaje medio de la cara superior: x=100, y=0 -> vértice en (100, 50)
+    col = [y for y in range(img.height()) if img.pixelColor(100, y).alpha() > 0]
+    assert col, "no se dibujó la línea vertical central"
+    assert min(col) <= 1, "debería llegar a la cara superior"
+    assert max(col) >= 50, "debería llegar al vértice"
+    # anclaje medio de la cara izquierda: y=50 -> vértice
+    row = _opaque_columns(img, 50)
+    assert row, "no se dibujó la línea horizontal central"
+    assert min(row) <= 1, "debería llegar a la cara izquierda"
+    assert max(row) >= 100, "debería llegar al vértice"
+
+def test_fuga_rule_lines_stop_at_vertex():
+    # vértice en 0.75: la línea desde el anclaje superior-x=0.25 termina en el vértice
+    img = _render([Rule(kind="fuga", x=0.75, y=0.5)])
+    # (100, 25) está sobre la línea (50,0) -> (150,50)
+    assert img.pixelColor(100, 25).alpha() > 0, "falta la línea desde el anclaje superior"
+    # (180, 60) sería la extensión de la esquina (0,0) más allá del vértice: no debe haber nada
+    assert img.pixelColor(180, 60).alpha() == 0, "la línea no debería atravesar el vértice"
+    assert img.pixelColor(150, 50).alpha() > 0, "falta el vértice"
+
+def test_shift_d_clears_only_user_rules():
     indice = 4
     state = State(guide_index=indice)
     state.rules.append(Rule(kind="h", x=0.5, y=0.5))
     state.rules.append(Rule(kind="rect", x=0.3, y=0.3, corner=1))
     assert len(state.rules) == 2
 
-    action = keymap.handle("Backspace", state, shift=True)
+    action = keymap.handle("D", state, shift=True)
     assert action == "clear_rules"
     assert state.rules == []
     assert state.guide_index == indice
 
-def test_plain_backspace_does_nothing():
+def test_plain_d_does_nothing():
     state = State()
     state.rules.append(Rule(kind="h", x=0.5, y=0.5))
-    assert keymap.handle("Backspace", state, shift=False) is None
+    assert keymap.handle("D", state, shift=False) is None
     assert len(state.rules) == 1

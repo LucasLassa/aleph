@@ -8,9 +8,9 @@ películas, series y anime.
 
 ## CARACTERÍSTICAS
 
-- Pool con 10 guías preestablecidas: regla de tercios, triángulos áureos,
-  espirales de Fibonacci, centro y diagonales. Incluye un espacio vacío
-  para trabajar solo con las reglas propias.
+- Pool con 11 guías preestablecidas: regla de tercios, triángulos áureos,
+  espirales de Fibonacci, centro, diagonales y rejilla áurea (Phi Grid).
+  Incluye un espacio vacío para trabajar solo con las reglas propias.
 
 - Definición de reglas personalizadas por el usuario.
 
@@ -111,12 +111,12 @@ marco activo.
 |---|---|
 | `←` / `→` | Guía anterior / siguiente |
 | `↑` / `↓` | Subir / bajar opacidad (pasos de 0.05) |
-| `M` | Alternar modo marco (edición ↔ pasivo) |
-| `Shift + F` | Desbloquear / bloquear fullscreen |
-| `Shift + Backspace` | Borrar las reglas propias |
+| `Shift + M` | Alternar modo marco (edición ↔ pasivo) |
+| `Shift + D` | Borrar las reglas propias |
 | `Shift + S` | Captura de pantalla con las líneas |
 | `Shift + C` | Alternar color de las líneas (blanco / negro) |
 | `Esc` | Cerrar la aplicación |
+| `Tab` | Abrir / cerrar el panel |
 | `Shift + clic izq.` | Colocar / mover una regla propia |
 
 Las teclas se configuran en `src/core/keymap.py`.
@@ -136,19 +136,28 @@ organizado en secciones:
 
 ### Modo pasivo
 
-Con `M` (o el botón "Modo visualización") la overlay quita todo el cromo
-y deja solo las guías. Abajo a la derecha aparece un botón "Volver al
-modo edición".
+Con `Shift + M` (o el botón "Modo visualización") la overlay quita todo el
+cromo y deja solo las guías. Abajo a la derecha aparece un botón "Volver
+al modo edición".
 
 Los atajos con Shift siguen funcionando con el marco OFF. El teclado
-también responde sin botones visibles: `←` `→`, `↑` `↓`, `Shift + C` y `Esc`.
+también responde sin botones visibles: `←` `→`, `↑` `↓`, `Shift + M`,
+`Shift + C` y `Esc`.
 
 ## REGLAS PROPIAS
 
 Además de las guías preestablecidas, podés crear líneas de composición a
 medida. Los botones del panel se agrupan en rectas (horizontal y
-vertical), diagonales (ascendente y descendente) y vértices (cuatro
-esquinas).
+vertical), diagonales (ascendente y descendente), vértices (cuatro
+esquinas) y el punto de fuga.
+
+### Punto de fuga (◇ Fuga)
+
+El botón "◇ Fuga" crea un punto de fuga de perspectiva: 16 líneas que
+van de 5 anclajes por cara de la pantalla (puntas, mitad y medios entre
+mitad y punta) hasta el vértice elegido, más un punto marcador en el
+vértice. Se coloca igual que las demás reglas: botón → `Shift` + clic y
+arrastrar → soltar `Shift`.
 
 ### Cómo se colocan
 
@@ -159,7 +168,7 @@ esquinas).
 
 ### Cómo se borran
 
-`Shift + Backspace` (o el botón "Borrar mis líneas dibujadas" del panel)
+`Shift + D` (o el botón "Borrar mis líneas dibujadas" del panel)
 borra todas las reglas propias.
 
 ### Espacio vacío
@@ -177,9 +186,9 @@ las reglas superpuestas.
 
 ## REDIMENSIONAR LA VENTANA
 
-`Shift + F` desbloquea el fullscreen y aparecen tiradores en las esquinas.
-Arrastralos para redimensionar. `Shift + F` de nuevo devuelve la ventana a
-pantalla completa.
+La app arranca siempre en pantalla completa. El redimensionamiento manual
+con tiradores en las esquinas queda reservado para futuras versiones; por
+ahora la ventana cubre el monitor completo.
 
 ## CONFIGURACIÓN
 

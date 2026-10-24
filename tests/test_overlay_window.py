@@ -32,7 +32,7 @@ def app() -> QApplication:
     yield QApplication.instance() or QApplication([])
 
 def _toggle(window: OverlayWindow, state: State) -> None:
-    assert keymap.handle("M", state) == "toggle_frame"
+    assert keymap.handle("M", state, shift=True) == "toggle_frame"
     window.apply_frame_mode()
 
 def test_frame_toggle_keeps_visible_and_fullscreen(app: QApplication):

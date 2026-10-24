@@ -102,6 +102,25 @@ def test_armed_rule_is_used_by_later_shift_click(app: QApplication):
     assert len(state.rules) == 1
     assert state.rules[0].kind == "v"
 
+def test_fuga_button_arms_and_shift_click_places_vanishing_point(app: QApplication):
+    state = State()
+    window = _window(state)
+    center = _button_center(window, "rule_fuga")
+    _click(window, center.x(), center.y(), shift=False)
+    assert window._armed_rule == ("fuga", -1)
+    assert state.rules == [], "el click en el botón solo arma, no crea"
+
+    _click(window, 600, 200)
+    assert len(state.rules) == 1
+    assert state.rules[0].kind == "fuga"
+    rule = state.rules[0]
+    assert abs(rule.x - 600 / 800) < 0.01
+    assert abs(rule.y - 200 / 600) < 0.01
+
+    _drag(window, 100, 500)
+    assert abs(rule.x - 100 / 800) < 0.01
+    assert abs(rule.y - 500 / 600) < 0.01
+
 def test_vertex_follows_the_drag(app: QApplication):
     state = State()
     window = _window(state)
