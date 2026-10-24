@@ -151,14 +151,6 @@ medida. Los botones del panel se agrupan en rectas (horizontal y
 vertical), diagonales (ascendente y descendente), vértices (cuatro
 esquinas) y el punto de fuga.
 
-### Punto de fuga (◇ Fuga)
-
-El botón "◇ Fuga" crea un punto de fuga de perspectiva: 16 líneas que
-van de 5 anclajes por cara de la pantalla (puntas, mitad y medios entre
-mitad y punta) hasta el vértice elegido, más un punto marcador en el
-vértice. Se coloca igual que las demás reglas: botón → `Shift` + clic y
-arrastrar → soltar `Shift`.
-
 ### Cómo se colocan
 
 1. Pulsá el botón del tipo de regla que quieras.
@@ -183,22 +175,12 @@ las reglas superpuestas.
 
 - Se guarda en Descargas, o en la carpeta elegida con "Guardar en".
 - Nombres: `aleph-AAAAMMDD-HHMMSS.png`.
-
-## REDIMENSIONAR LA VENTANA
-
-La app arranca siempre en pantalla completa. El redimensionamiento manual
-con tiradores en las esquinas queda reservado para futuras versiones; por
-ahora la ventana cubre el monitor completo.
-
+- 
 ## CONFIGURACIÓN
 
 La configuración se guarda en
 `~/.config/aleph/config.json` al cerrar la app: opacidad,
 color de líneas y carpeta de capturas.
-
-No se persisten el modo marco, la guía activa, el modo fullscreen ni las
-reglas. La app arranca siempre con marco ON, en la regla de tercios y a
-pantalla completa.
 
 ## DESARROLLO
 
